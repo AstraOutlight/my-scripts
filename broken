@@ -1,0 +1,95 @@
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "LockerValueGui"
+gui.ResetOnSpawn = false
+gui.Parent = playerGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 260, 0, 110)
+frame.Position = UDim2.new(0.5, -130, 0.75, 0)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+frame.BorderSizePixel = 0
+frame.AnchorPoint = Vector2.new(0.5, 0)
+frame.Parent = gui
+frame.ClipsDescendants = true
+frame.Active = true
+frame.Draggable = true
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+closeBtn.Text = "X"
+closeBtn.TextScaled = true
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Parent = frame
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(1, 0)
+
+local totalValueLabel = Instance.new("TextLabel")
+totalValueLabel.Size = UDim2.new(1, -20, 0, 40)
+totalValueLabel.Position = UDim2.new(0, 10, 0, 10)
+totalValueLabel.BackgroundTransparency = 1
+totalValueLabel.TextScaled = true
+totalValueLabel.Text = "Total Value: $0"
+totalValueLabel.Font = Enum.Font.GothamSemibold
+totalValueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+totalValueLabel.TextXAlignment = Enum.TextXAlignment.Left
+totalValueLabel.Parent = frame
+
+local checkBtn = Instance.new("TextButton")
+checkBtn.Size = UDim2.new(0.8, 0, 0, 30)
+checkBtn.Position = UDim2.new(0.1, 0, 1, -15)
+checkBtn.AnchorPoint = Vector2.new(0, 1)
+checkBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+checkBtn.Text = "Check Lockers"
+checkBtn.TextScaled = true
+checkBtn.Font = Enum.Font.Gotham
+checkBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+checkBtn.Parent = frame
+Instance.new("UICorner", checkBtn).CornerRadius = UDim.new(0, 6)
+
+local function scanLockersOnly()
+	local total = 0
+	local lockers = workspace:FindFirstChild("Lockers")
+	if lockers then
+		for _, locker in ipairs(lockers:GetChildren()) do
+			if locker:IsA("Model") then
+				local loadspace = locker:FindFirstChild("Loadspace")
+				if loadspace then
+					for _, item in ipairs(loadspace:GetChildren()) do
+						local valueObj = item:FindFirstChild("Value")
+						if valueObj and valueObj:IsA("NumberValue") then
+							total += valueObj.Value
+						end
+					end
+				end
+			end
+		end
+	end
+	totalValueLabel.Text = "Total Value: $" .. total
+end
+
+checkBtn.MouseButton1Click:Connect(scanLockersOnly)
+closeBtn.MouseButton1Click:Connect(function()
+	gui:Destroy()
+end)
+
+task.spawn(function()
+	local intermissionLabel = playerGui:WaitForChild("MainUI"):WaitForChild("Information"):WaitForChild("Intermission")
+
+	local function onTextChanged(newText)
+		if newText:lower():find("time remaining") then
+			scanLockersOnly()
+		end
+	end
+
+	onTextChanged(intermissionLabel.Text)
+
+	intermissionLabel:GetPropertyChangedSignal("Text"):Connect(function()
+		onTextChanged(intermissionLabel.Text)
+	end)
+end)
