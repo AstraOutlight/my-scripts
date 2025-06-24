@@ -1,10 +1,31 @@
+local counterFrame = Instance.new("Frame")
+counterFrame.Size = UDim2.new(0, 200, 0, #oreTypes * 18)
+counterFrame.Position = UDim2.new(0, 0, 0.5, -(#oreTypes * 18) / 2)
+counterFrame.BackgroundTransparency = 1
+counterFrame.Parent = screenGui
+
+local counterLabels = {}
+
+for i, ore in ipairs(oreTypes) do
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.Position = UDim2.new(0, 0, 0, (i - 1) * 18)
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 18
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.BackgroundTransparency = 1
+    label.Text = ""
+    label.Visible = false
+    label.Parent = counterFrame
+    counterLabels[ore] = label
+end
+
 local function updateOreCounters()
     local inv = game:GetService("Players").LocalPlayer:FindFirstChild("Inventory")
     if not inv then return end
 
     local counts = {}
 
-    -- Reset counts
     for _, ore in ipairs(oreTypes) do
         counts[ore] = 0
     end
@@ -22,7 +43,7 @@ local function updateOreCounters()
         local totalWeight = counts[ore]
         local label = counterLabels[ore]
         if totalWeight > 0 then
-            local rounded = math.floor(totalWeight * 1000 + 0.5) / 1000 -- Round to 3 decimal places
+            local rounded = math.floor(totalWeight * 1000 + 0.5) / 1000
             label.Text = ore .. ": " .. rounded .. " KG"
             label.Visible = true
         else
@@ -31,7 +52,6 @@ local function updateOreCounters()
     end
 end
 
--- Run the update every second
 task.spawn(function()
     while true do
         pcall(updateOreCounters)
