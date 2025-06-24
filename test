@@ -1,3 +1,8 @@
+local oreTypes = { "Coal", "Copper", "Iron", "Gold", "Titanium", "Diamond" }
+local localPlayer = game.Players.LocalPlayer
+local character = function() return localPlayer.Character or localPlayer.CharacterAdded:Wait() end
+local hrp = function() return character():WaitForChild("HumanoidRootPart") end
+
 local counterFrame = Instance.new("Frame")
 counterFrame.Size = UDim2.new(0, 200, 0, #oreTypes * 18)
 counterFrame.Position = UDim2.new(0, 0, 0.5, -(#oreTypes * 18) / 2)
