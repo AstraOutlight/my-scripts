@@ -1,14 +1,19 @@
+--====[ Ore Types to Track ]====--
 local oreTypes = { "Coal", "Copper", "Iron", "Gold", "Titanium", "Diamond" }
-local localPlayer = game.Players.LocalPlayer
-local character = function() return localPlayer.Character or localPlayer.CharacterAdded:Wait() end
-local hrp = function() return character():WaitForChild("HumanoidRootPart") end
 
+--====[ Create ScreenGui ]====--
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "OreCounterGUI"
+screenGui.Parent = game.CoreGui
+
+--====[ Create Counter Frame ]====--
 local counterFrame = Instance.new("Frame")
 counterFrame.Size = UDim2.new(0, 200, 0, #oreTypes * 18)
 counterFrame.Position = UDim2.new(0, 0, 0.5, -(#oreTypes * 18) / 2)
 counterFrame.BackgroundTransparency = 1
 counterFrame.Parent = screenGui
 
+--====[ Create Counter Labels ]====--
 local counterLabels = {}
 
 for i, ore in ipairs(oreTypes) do
@@ -25,12 +30,12 @@ for i, ore in ipairs(oreTypes) do
     counterLabels[ore] = label
 end
 
+--====[ Ore Counter Update Function ]====--
 local function updateOreCounters()
     local inv = game:GetService("Players").LocalPlayer:FindFirstChild("Inventory")
     if not inv then return end
 
     local counts = {}
-
     for _, ore in ipairs(oreTypes) do
         counts[ore] = 0
     end
@@ -57,6 +62,7 @@ local function updateOreCounters()
     end
 end
 
+--====[ Auto Update Ore Counts Every Second ]====--
 task.spawn(function()
     while true do
         pcall(updateOreCounters)
