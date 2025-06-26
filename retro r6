@@ -1,0 +1,91 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+local function applyCustomizations(char)
+    local humanoid = char:WaitForChild("Humanoid")
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    for _, s in pairs(hrp:GetChildren()) do
+        if s:IsA("Sound") then
+            s:Destroy()
+        end
+    end
+
+    local animateScript = char:FindFirstChild("Animate")
+    if animateScript then
+        animateScript.Disabled = true
+    end
+
+    local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator", humanoid)
+    for _, tr in pairs(animator:GetPlayingAnimationTracks()) do
+        tr:Stop()
+    end
+
+    local anims = {
+        idle = "rbxassetid://161100084",
+        walk = "rbxassetid://28440069",
+        run  = "rbxassetid://130591500",
+        jump = "rbxassetid://165928638",
+        fall = "rbxassetid://165928826",
+        climb = "rbxassetid://165928638",
+        sit = "rbxassetid://179224234"
+    }
+
+    local dances = {
+        ["Dance 1"] = "rbxassetid://132149582",
+        ["Dance 2"] = "rbxassetid://27789359",
+        ["Dance 3"] = "rbxassetid://35654637"
+    }
+
+    for name, id in pairs(dances) do
+        if not player.Backpack:FindFirstChild(name) then
+            local tool = Instance.new("Tool")
+            tool.Name = name
+            tool.RequiresHandle = false
+            tool.CanBeDropped = false
+
+            local anim = Instance.new("Animation")
+            anim.AnimationId = id
+
+            local danceTrack = nil
+
+            tool.Equipped:Connect(function()
+                humanoid.WalkSpeed = 0
+                humanoid.JumpPower = 0
+                for _, t in pairs(animator:GetPlayingAnimationTracks()) do t:Stop() end
+                walkSound:Stop()
+                runSound:Stop()
+                climbSound:Stop()
+                danceTrack = animator:LoadAnimation(anim)
+                danceTrack.Looped = true
+                danceTrack.Priority = Enum.AnimationPriority.Action
+                danceTrack:Play()
+            end)
+
+            tool.Unequipped:Connect(function()
+                if danceTrack then
+                    danceTrack:Stop()
+                    danceTrack:Destroy()
+                    danceTrack = nil
+                end
+                humanoid.WalkSpeed = 16
+                humanoid.JumpPower = 50
+            end)
+
+            tool.Parent = player.Backpack
+        end
+    end
+end
+
+local function waitForCharacter()
+    if player.Character then
+        applyCustomizations(player.Character)
+    end
+    player.CharacterAdded:Connect(function(char)
+        repeat wait() until char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Humanoid")
+        applyCustomizations(char)
+    end)
+end
+
+waitForCharacter()
